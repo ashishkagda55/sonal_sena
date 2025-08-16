@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>નિમણૂક પત્ર એડિટર</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --canvas-w: 1080px;
+  --canvas-h: 1530px;
+}
+* { box-sizing: border-box; font-family: "Noto Sans Gujarati", sans-serif; }
+body {
+  margin: 18px;
+  background: #f0f3f6;
+  color: #111;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: flex-start;
+}
+.controls {
+  width: 340px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(15, 15, 15, 0.08);
+  max-height: 92vh;
+  overflow: auto;
+}
+.controls h2 { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+.controls label { display: block; font-weight: 700; margin-top: 10px; font-size: 13px; }
+.controls input, .controls textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #d6d6d6;
+  font-size: 14px;
+}
+.controls textarea { min-height: 80px; resize: vertical; }
+.btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+button { border: 0; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 800; }
+.primary { background: #111; color: #fff; }
+.ghost { background: #f3f4f6; }
+
+.canvas-wrap { width: var(--canvas-w); height: var(--canvas-h); position: relative; }
+.poster {
+  width: 100%;
+  height: 100%;
+  background: url('poster.jpg') no-repeat center/cover;
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+.overlay { position: absolute; inset: 0; pointer-events: none; }
+
+/* Center photo frame */
+.center-frame {
+  position: absolute;
+  left: 48%;
+  top: 256px;
+  transform: translateX(-50%);
+  width: 259px;
+  height: 261px;
+  overflow: hidden;
+  border-radius: 8px;
+  pointer-events: none;
+  background: #fff;
+  border: 4px solid #000;
+}
+.center-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.text-overlay {
+  position: absolute;
+  font-weight: 700;
+  color: #ff0000;
+  white-space: pre-wrap;
+  line-height: 1.3;
+}
+
+/* Text positions */
+#nameOut { 
+          top: 547px;
+          left: 440px;
+          font-size: 36px; 
+        }
+
+#villageOut { 
+              top: 643px;
+              left: 267px;
+              font-size: 30px; 
+            }
+
+#talukaOut { 
+            top: 649px;
+            left: 624px;
+            font-size: 30px; 
+          }
+
+#districtOut { 
+              top: 710px;
+              left: 305px;
+              font-size: 30px; 
+            }
+
+#mobileOut { 
+            top: 719px;
+            left: 651px;
+            font-size: 30px; 
+          }
+
+#businessOut { 
+              top: 1067px;
+              left: 694px;
+              font-size: 30px;
+              max-width: 350px; 
+            }
+
+#paraOut { top: 800px; left: 140px; font-size: 22px; width: 800px; }
+#listOut { top: 980px; left: 160px; font-size: 22px; width: 760px; white-space: pre-line; }
+
+#dateOut { 
+            top: 1312px;
+            left: 349px;
+            font-size: 24px;
+          } 
+
+.note { margin-top: 8px; font-size: 13px; color: #333; text-align: center; }
+@media (max-width: 1200px) {
+  body { flex-direction: column; align-items: center; }
+  .controls { width: 92%; max-width: 520px; }
+  .canvas-wrap { transform: scale(0.85); transform-origin: top center; margin-top: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <h2>પોસ્ટર માટે ફોર્મ</h2>
+  <label>નામ</label><input id="nameIn" type="text">
+  <label>ગામ</label><input id="villageIn" type="text">
+  <label>તાલુકો</label><input id="talukaIn" type="text">
+  <label>જિલ્લો</label><input id="districtIn" type="text">
+  <label>મોબાઈલ નંબર</label><input id="mobileIn" type="text">
+  <label>વ્યવસાય</label><input id="businessIn" type="text">
+  <label>તારીખ</label><input id="dateIn" type="date">
+  <label>પ્રોફાઇલ ફોટો</label><input id="centerImgIn" type="file" accept="image/*">
+  <label>પરિચ્છેદ</label><textarea id="paraIn"></textarea>
+  <label>સંગઠન હેતુ</label><textarea id="listIn"></textarea>
+
+  <div class="btn-row">
+    <button id="applyBtn" class="primary">Apply</button>
+    <button id="resetBtn" class="ghost">Reset</button>
+    <button id="downloadBtn" class="primary" style="display:none">Download PNG</button>
+  </div>
+  
+</div>
+
+<div class="canvas-wrap">
+  <div id="poster" class="poster">
+    <div class="overlay">
+      <div class="center-frame">
+        <img id="centerImg" src="" alt="">
+      </div>
+      <div id="nameOut" class="text-overlay"></div>
+      <div id="villageOut" class="text-overlay"></div>
+      <div id="talukaOut" class="text-overlay"></div>
+      <div id="districtOut" class="text-overlay"></div>
+      <div id="mobileOut" class="text-overlay"></div>
+      <div id="businessOut" class="text-overlay"></div>
+      <div id="paraOut" class="text-overlay"></div>
+      <div id="listOut" class="text-overlay"></div>
+      <div id="dateOut" class="text-overlay"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const get = id => document.getElementById(id);
+const put = (id, text) => { get(id).textContent = text.trim() || ''; };
+
+const apply = () => {
+  put('nameOut', get('nameIn').value);
+  put('villageOut', get('villageIn').value );
+  put('talukaOut', get('talukaIn').value );
+  put('districtOut', get('districtIn').value );
+  put('mobileOut', get('mobileIn').value );
+  put('businessOut', get('businessIn').value);
+  put('paraOut', get('paraIn').value);
+  setList(get('listIn').value);
+  get('dateOut').textContent = formatDate(get('dateIn').value);
+  get('downloadBtn').style.display = 'inline-block';
+};
+
+const setList = val => {
+  const arr = val.split(/\n/).filter(Boolean);
+  get('listOut').textContent = arr.map((t, i) => `${i + 1}. ${t}`).join('\n');
+};
+
+const formatDate = iso => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+};
+
+get('centerImgIn').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) {
+    const r = new FileReader();
+    r.onload = ev => get('centerImg').src = ev.target.result;
+    r.readAsDataURL(file);
+  }
+});
+
+get('applyBtn').addEventListener('click', apply);
+get('resetBtn').addEventListener('click', () => location.reload());
+get('downloadBtn').addEventListener('click', async () => {
+  const canvas = await html2canvas(get('poster'), { scale: 3 });
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'nimnuk-patra.png';
+  a.click();
+});
+</script>
+</body>
+</html>
